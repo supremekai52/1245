@@ -1,104 +1,200 @@
-'use client';
+import { useState, useEffect } from 'react';
+import { CheckCircle, AlertCircle, XCircle, Activity, Database, Network, Shield } from 'lucide-react';
 
-import React from 'react';
+interface SystemHealthMonitorProps {
+  systemHealth: number;
+}
 
-export default function SecurityStatus() {
-  const services = [
-    { name: 'Blockchain RPC', uptime: '100.0%', latency: '108ms' },
-    { name: 'IPFS Gateway', uptime: '99.4%', latency: '227ms' },
-    { name: 'Supabase DB', uptime: '100.0%', latency: '59ms' },
-    { name: 'Smart Contract', uptime: '100.0%', latency: '130ms' },
-  ];
+interface ServiceStatus {
+  name: string;
+  status: 'operational' | 'degraded' | 'down';
+  uptime: number;
+  responseTime: number;
+  icon: any;
+}
+
+export default function SystemHealthMonitor({ systemHealth }: SystemHealthMonitorProps) {
+  const [services, setServices] = useState<ServiceStatus[]>([
+    {
+      name: 'Blockchain RPC',
+      status: 'operational',
+      uptime: 99.9,
+      responseTime: 120,
+      icon: Network
+    },
+    {
+      name: 'IPFS Gateway',
+      status: 'operational',
+      uptime: 98.5,
+      responseTime: 250,
+      icon: Database
+    },
+    {
+      name: 'Supabase DB',
+      status: 'operational',
+      uptime: 99.7,
+      responseTime: 80,
+      icon: Database
+    },
+    {
+      name: 'Smart Contract',
+      status: 'operational',
+      uptime: 100,
+      responseTime: 150,
+      icon: Shield
+    }
+  ]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setServices(prev => prev.map(service => ({
+        ...service,
+        responseTime: service.responseTime + Math.floor(Math.random() * 20) - 10,
+        uptime: Math.min(100, service.uptime + (Math.random() * 0.1))
+      })));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'operational':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'degraded':
+        return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+      case 'down':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return <Activity className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'operational':
+        return 'bg-green-500';
+      case 'degraded':
+        return 'bg-yellow-500';
+      case 'down':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'operational':
+        return 'Operational';
+      case 'degraded':
+        return 'Degraded';
+      case 'down':
+        return 'Down';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const getHealthColor = (health: number) => {
+    if (health >= 95) return 'from-green-500 to-emerald-500';
+    if (health >= 80) return 'from-yellow-500 to-orange-500';
+    return 'from-red-500 to-pink-500';
+  };
 
   return (
-    <div className="relative bg-[#0E1624] border border-[#1C2A3A] rounded-2xl p-6 flex flex-col gap-5 shadow-xl overflow-hidden">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+    <div className="bg-gray-800 rounded-2xl border border-gray-700 p-6">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-green-400 tracking-wide">
-            SYSTEM HEALTH
-          </h2>
-          <p className="text-sm text-gray-400 mt-1">
-            Service status monitoring
-          </p>
+          <h2 className="text-xl font-bold text-white">System Health</h2>
+          <p className="text-sm text-gray-400 mt-1">Service status monitoring</p>
         </div>
-
-        {/* Circular Status Indicator */}
         <div className="relative">
-          <svg className="w-14 h-14 -rotate-90">
+          <svg className="w-16 h-16 transform -rotate-90">
             <circle
-              cx="28"
-              cy="28"
-              r="24"
-              stroke="rgba(255,255,255,0.1)"
+              cx="32"
+              cy="32"
+              r="28"
+              stroke="currentColor"
               strokeWidth="4"
               fill="none"
+              className="text-gray-700"
             />
             <circle
-              cx="28"
-              cy="28"
-              r="24"
-              stroke="#22c55e"
+              cx="32"
+              cy="32"
+              r="28"
+              stroke="url(#healthGradient)"
               strokeWidth="4"
               fill="none"
-              strokeDasharray="120 150"
-              strokeLinecap="round"
+              strokeDasharray={`${(systemHealth / 100) * 176} 176`}
+              className="transition-all duration-500"
             />
+            <defs>
+              <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={systemHealth >= 95 ? '#10b981' : systemHealth >= 80 ? '#f59e0b' : '#ef4444'} />
+                <stop offset="100%" stopColor={systemHealth >= 95 ? '#059669' : systemHealth >= 80 ? '#d97706' : '#dc2626'} />
+              </linearGradient>
+            </defs>
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-semibold text-white">98%</span>
+            <span className="text-lg font-bold text-white">{systemHealth}%</span>
           </div>
         </div>
       </div>
 
-      {/* Service List */}
-      <div className="relative z-10 space-y-3">
-        {services.map((service, i) => (
+      <div className="space-y-3">
+        {services.map((service, index) => (
           <div
-            key={i}
-            className="flex items-center justify-between bg-[#101B2D] border border-[#1E2E42] p-3 rounded-xl"
+            key={index} 
+            className="flex items-center justify-between p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
           >
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#0A1220] rounded-lg">
-                <div className="w-4 h-4 bg-green-400 rounded-sm"></div>
+              <div className="p-2 bg-gray-800 rounded-lg">
+                <service.icon className="w-4 h-4 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">
-                  {service.name}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {service.uptime} uptime • {service.latency}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold text-white">{service.name}</span>
+                  {getStatusIcon(service.status)}
+                </div>
+                <div className="flex items-center space-x-3 mt-1">
+                  <span className="text-xs text-gray-400">
+                    {service.uptime.toFixed(1)}% uptime
+                  </span>
+                  <span className="text-xs text-gray-500">•</span>
+                  <span className="text-xs text-gray-400">
+                    {service.responseTime}ms
+                  </span>
+                </div>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              <span className="text-xs font-semibold text-green-400">
-                Operational
+              <div className={`w-2 h-2 rounded-full ${getStatusColor(service.status)} animate-pulse`}></div>
+              <span className="text-xs font-semibold text-gray-300">
+                {getStatusText(service.status)}
               </span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="pt-3 border-t border-[#1E2E42] flex items-center justify-between">
-        <span className="text-sm text-gray-400">Overall Status</span>
-        <span className="text-sm font-semibold text-green-400">
-          All Systems Operational
-        </span>
+      <div className="mt-6 pt-4 border-t border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-gray-400">Overall Status</span>
+          <span className={`text-sm font-semibold ${systemHealth >= 95 ? 'text-green-400' : systemHealth >= 80 ? 'text-yellow-400' : 'text-red-400'}`}>
+            {systemHealth >= 95 ? 'All Systems Operational' : systemHealth >= 80 ? 'Minor Issues Detected' : 'Service Disruption'}
+          </span>
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div
+            className={`h-full bg-gradient-to-r ${getHealthColor(systemHealth)} transition-all duration-500`}
+            style={{ width: `${systemHealth}%` }}
+          ></div>
+        </div>
       </div>
-      <div className="w-full bg-[#1E2E42] rounded-full h-2 mt-1 overflow-hidden">
-        <div className="h-full bg-green-500 w-[98%]"></div>
-      </div>
-
-      {/* Floating Robot */}
-      <img
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/files-blob/public/assets/bot_greenprint-H9JtPdDs77kivcY7EdoYWFriVul1yT.gif"
-        className="absolute right-6 bottom-10 w-36 opacity-15 select-none pointer-events-none"
-        alt="System Robot"
-      />
     </div>
   );
 }
+ 
