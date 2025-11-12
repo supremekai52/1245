@@ -3,8 +3,10 @@ import { Shield, CheckCircle, XCircle, Loader2, UserCheck } from 'lucide-react';
 import { connectWallet, switchToSepolia } from '../utils/blockchain';
 import { ethers } from 'ethers';
 import contractData from '../contracts/AcademicCredentials.json';
+import AuthorizationRequests from './AuthorizationRequests';
 
 export default function AdminPanel() {
+  const [activeTab, setActiveTab] = useState<'authorize' | 'requests'>('requests');
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [institutionAddress, setInstitutionAddress] = useState('');
@@ -118,48 +120,77 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="flex items-center mb-6">
           <Shield className="w-8 h-8 text-blue-600 mr-3" />
           <h2 className="text-2xl font-bold text-gray-900">Admin Panel</h2>
         </div>
 
-        {!isOwner && walletAddress && (
-          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              <strong>Warning:</strong> You are not the contract owner. Only the contract owner can authorize institutions.
-            </p>
-            <p className="text-sm text-yellow-700 mt-2">
-              Connected Address: <span className="font-mono">{walletAddress}</span>
-            </p>
-          </div>
+        <div className="mb-6 flex gap-2 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('requests')}
+            className={`px-6 py-3 font-semibold transition-colors ${
+              activeTab === 'requests'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Authorization Requests
+          </button>
+          <button
+            onClick={() => setActiveTab('authorize')}
+            className={`px-6 py-3 font-semibold transition-colors ${
+              activeTab === 'authorize'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Manual Authorization
+          </button>
+        </div>
+
+        {activeTab === 'requests' && (
+          <AuthorizationRequests />
         )}
 
-        {isOwner && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-              <p className="text-sm text-green-800">
-                You are the contract owner and can authorize institutions.
-              </p>
-            </div>
-          </div>
-        )}
+        {activeTab === 'authorize' && (
+          <div>
+            {!isOwner && walletAddress && (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Warning:</strong> You are not the contract owner. Only the contract owner can authorize institutions.
+                </p>
+                <p className="text-sm text-yellow-700 mt-2">
+                  Connected Address: <span className="font-mono">{walletAddress}</span>
+                </p>
+              </div>
+            )}
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-700">{success}</p>
-          </div>
-        )}
+            {isOwner && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                  <p className="text-sm text-green-800">
+                    You are the contract owner and can authorize institutions.
+                  </p>
+                </div>
+              </div>
+            )}
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
+            {success && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm text-green-700">{success}</p>
+              </div>
+            )}
 
-        <div className="space-y-6">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+
+            <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Institution Wallet Address
@@ -240,36 +271,38 @@ export default function AdminPanel() {
               </div>
             </div>
           )}
-        </div>
+            </div>
 
-        <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">Quick Setup Guide:</h3>
-          <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-            <li>Connect with the wallet address that deployed the contract (contract owner)</li>
-            <li>Enter the institution's wallet address or click "Use My Address" to authorize yourself</li>
-            <li>Click "Authorize Institution" and confirm the transaction in MetaMask</li>
-            <li>Once authorized, that address can issue credentials from the Institution Dashboard</li>
-          </ol>
-        </div>
+            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-sm font-semibold text-blue-900 mb-2">Quick Setup Guide:</h3>
+              <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                <li>Connect with the wallet address that deployed the contract (contract owner)</li>
+                <li>Enter the institution's wallet address or click "Use My Address" to authorize yourself</li>
+                <li>Click "Authorize Institution" and confirm the transaction in MetaMask</li>
+                <li>Once authorized, that address can issue credentials from the Institution Dashboard</li>
+              </ol>
+            </div>
 
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-900 mb-2">Contract Information:</h3>
-          <div className="space-y-1">
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Contract Address:</span>
-              <br />
-              <span className="font-mono">{contractData.contractAddress}</span>
-            </p>
-            <p className="text-xs text-gray-600 mt-2">
-              <span className="font-medium">Your Wallet:</span>
-              <br />
-              <span className="font-mono">{walletAddress || 'Not connected'}</span>
-            </p>
-            <p className="text-xs text-gray-600 mt-2">
-              <span className="font-medium">Status:</span> {isOwner ? 'Contract Owner ✓' : 'Not Owner'}
-            </p>
+            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">Contract Information:</h3>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-600">
+                  <span className="font-medium">Contract Address:</span>
+                  <br />
+                  <span className="font-mono">{contractData.contractAddress}</span>
+                </p>
+                <p className="text-xs text-gray-600 mt-2">
+                  <span className="font-medium">Your Wallet:</span>
+                  <br />
+                  <span className="font-mono">{walletAddress || 'Not connected'}</span>
+                </p>
+                <p className="text-xs text-gray-600 mt-2">
+                  <span className="font-medium">Status:</span> {isOwner ? 'Contract Owner ✓' : 'Not Owner'}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

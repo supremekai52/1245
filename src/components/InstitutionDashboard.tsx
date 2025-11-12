@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Upload, CheckCircle, Loader2, TrendingUp, Award, Users } from 'lucide-react';
+import { Upload, CheckCircle, Loader2, TrendingUp, Award, Users, Tabs } from 'lucide-react';
 import { IssuanceFormData } from '../types/credential';
 import { uploadToIPFS } from '../utils/ipfs';
 import { issueCredential, connectWallet, switchToSepolia } from '../utils/blockchain';
 import { saveCredential, getInstitutionStats } from '../utils/supabase';
+import InstitutionRegistration from './InstitutionRegistration';
 
 export default function InstitutionDashboard() {
+  const [activeTab, setActiveTab] = useState<'issue' | 'register'>('issue');
   const [formData, setFormData] = useState<IssuanceFormData>({
     studentName: '',
     studentAddress: '',
@@ -111,7 +113,7 @@ export default function InstitutionDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {walletAddress && (
+      {walletAddress && activeTab === 'issue' && (
         <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
@@ -149,7 +151,31 @@ export default function InstitutionDashboard() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="mb-6 flex gap-2 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('issue')}
+          className={`px-6 py-3 font-semibold transition-colors ${
+            activeTab === 'issue'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Issue Credential
+        </button>
+        <button
+          onClick={() => setActiveTab('register')}
+          className={`px-6 py-3 font-semibold transition-colors ${
+            activeTab === 'register'
+              ? 'border-b-2 border-blue-600 text-blue-600'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Authorization Request
+        </button>
+      </div>
+
+      {activeTab === 'issue' && (
+        <div className="bg-white rounded-lg shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Issue Academic Credential</h2>
 
         {success && (
@@ -299,7 +325,12 @@ export default function InstitutionDashboard() {
             )}
           </button>
         </form>
-      </div>
+        </div>
+      )}
+
+      {activeTab === 'register' && (
+        <InstitutionRegistration />
+      )}
     </div>
   );
 }
