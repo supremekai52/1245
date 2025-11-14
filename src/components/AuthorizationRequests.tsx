@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Copy, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Copy, MessageSquare, AlertCircle } from 'lucide-react';
 import { supabase } from '../utils/supabase';
+import { getContract } from '../utils/blockchain';
 
 interface AuthRequest {
   id: string;
@@ -25,6 +26,8 @@ export default function AuthorizationRequests() {
   const [adminNotes, setAdminNotes] = useState('');
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequests();
@@ -55,8 +58,25 @@ export default function AuthorizationRequests() {
 
   const handleApprove = async (id: string) => {
     setProcessingId(id);
+    setError(null);
+    setSuccess(null);
+
     try {
-      const { error } = await supabase
+      const request = requests.find(r => r.id === id);
+      if (!request) {
+        throw new Error('Request not found');
+      }
+
+      if (!window.ethereum) {
+        throw new Error('MetaMask not installed');
+      }
+
+      const contract = await getContract();
+
+      const tx = await contract.authorizeInstitution(request.wallet_address);
+      await tx.wait();
+
+      const { error: dbError } = await supabase
         .from('institution_authorization_requests')
         .update({
           status: 'approved',
@@ -65,12 +85,17 @@ export default function AuthorizationRequests() {
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      setSuccess(`Institution ${request.institution_name} has been authorized on blockchain!`);
       setSelectedRequest(null);
       setAdminNotes('');
       fetchRequests();
-    } catch (err) {
+
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
       console.error('Error approving request:', err);
+      setError(err.message || 'Failed to authorize institution');
     } finally {
       setProcessingId(null);
     }
@@ -131,6 +156,38 @@ export default function AuthorizationRequests() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div className="flex-1">
+            <h4 className="text-sm font-semibold text-red-900">Error</h4>
+            <p className="text-sm text-red-700 mt-1">{error}</p>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="text-red-400 hover:text-red-600"
+          >
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start">
+          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div className="flex-1">
+            <h4 className="text-sm font-semibold text-green-900">Success</h4>
+            <p className="text-sm text-green-700 mt-1">{success}</p>
+          </div>
+          <button
+            onClick={() => setSuccess(null)}
+            className="text-green-400 hover:text-green-600"
+          >
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Institution Authorization Requests</h2>
 
@@ -229,27 +286,34 @@ export default function AuthorizationRequests() {
                     </div>
 
                     {request.status === 'pending' && (
-                      <div className="flex gap-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleApprove(request.id);
-                          }}
-                          disabled={processingId === request.id}
-                          className="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                        >
-                          {processingId === request.id ? 'Processing...' : 'Approve'}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReject(request.id);
-                          }}
-                          disabled={processingId === request.id}
-                          className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
-                        >
-                          {processingId === request.id ? 'Processing...' : 'Reject'}
-                        </button>
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-xs text-blue-800">
+                            Clicking Approve will trigger MetaMask to authorize this institution on the blockchain.
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleApprove(request.id);
+                            }}
+                            disabled={processingId === request.id}
+                            className="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                          >
+                            {processingId === request.id ? 'Authorizing on Blockchain...' : 'Approve & Authorize'}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReject(request.id);
+                            }}
+                            disabled={processingId === request.id}
+                            className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                          >
+                            {processingId === request.id ? 'Processing...' : 'Reject'}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
