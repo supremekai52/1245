@@ -552,27 +552,22 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               </div>
               <p className="text-gray-600">Uptime Guarantee</p>
             </motion.div>
-<motion.div
-  initial={{ opacity: 0, y: 20, scale: 0.8 }}
-  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-  viewport={{ once: true }}
-  transition={{ 
-    duration: 0.6, 
-    delay: 0.2,
-    type: "spring",
-    stiffness: 300,
-    damping: 20
-  }}
-  className="text-center"
->
-  <div className="text-3xl font-bold text-purple-600 mb-2">
-    0<span className="text-2xl">+</span>
-  </div>
-  <p className="text-gray-600">Data Breaches</p>
-</motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <div className="text-3xl font-bold text-purple-600 mb-2">
+                <AnimatedCounter target={0} />
+                <span>+</span>
+              </div>
+              <p className="text-gray-600">Data Breaches</p>
+            </motion.div>
           </div>
         </div>
       </motion.div>
     </div>
   );
 }
+ 
