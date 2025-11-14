@@ -275,9 +275,11 @@ export default function OperationsDashboard({ onBack }: OperationsDashboardProps
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 border-r border-gray-800 transform transition-transform duration-300 lg:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex items-center justify-between p-6 border-b border-gray-800">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9SDhWvIaGwyyoH9wENFZ4EFEqQCr4UXIVjw&s"
+                alt="CredSphere Logo"
+                className="w-8 h-8 rounded-lg object-cover"
+              />
               <span className="text-xl font-bold text-white">CredSphere</span>
             </div>
             <button onClick={() => setMobileMenuOpen(false)} className="lg:hidden text-gray-400">

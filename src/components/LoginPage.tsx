@@ -83,8 +83,12 @@ export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
       <div className="max-w-5xl w-full grid md:grid-cols-2 gap-8">
         <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-200">
           <div className="flex items-center justify-center mb-6">
-            <div className="p-3 bg-blue-600 rounded-xl">
-              <GraduationCap className="w-8 h-8 text-white" />
+            <div className="p-3 bg-white rounded-xl border-2 border-blue-600">
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9SDhWvIaGwyyoH9wENFZ4EFEqQCr4UXIVjw&s"
+                alt="CredSphere Logo"
+                className="w-8 h-8 rounded-lg object-cover"
+              />
             </div>
           </div>
 

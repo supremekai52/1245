@@ -195,11 +195,15 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               transition={{ type: 'spring', stiffness: 200, damping: 15 }}
             >
               <motion.div
-                className="p-4 bg-blue-600 rounded-2xl shadow-lg"
+                className="p-4 bg-white rounded-2xl shadow-lg border-2 border-blue-600"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 10 }}
               >
-                <GraduationCap className="w-16 h-16 text-white" />
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9SDhWvIaGwyyoH9wENFZ4EFEqQCr4UXIVjw&s"
+                  alt="CredSphere Logo"
+                  className="w-16 h-16 rounded-lg object-cover"
+                />
               </motion.div>
             </motion.div>
             <motion.h1
