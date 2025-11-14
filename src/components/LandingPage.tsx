@@ -547,7 +547,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <div className="text-3xl font-bold text-green-600 mb-2">
-                <AnimatedCounter target={98.1} />
+                <AnimatedCounter target={99} />
                 <span>.9%</span>
               </div>
               <p className="text-gray-600">Uptime Guarantee</p>
